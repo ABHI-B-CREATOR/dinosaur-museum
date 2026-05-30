@@ -989,6 +989,17 @@ footer {
   .footer-top { grid-template-columns: 1fr; gap: 2.5rem; }
 }
 </style>
+<script>
+// Video URLs Configuration - Update these URLs to your hosting service
+const VIDEO_URLS = {
+  heroLowAngleTrex: "https://res.cloudinary.com/dsdxaxkiz/video/upload/v1779624998/Low-Angle-T-Rex.mp4",
+  coastalPterosaurs: "https://res.cloudinary.com/dsdxaxkiz/video/upload/v1779624998/Coastal-Pterosaurs.mp4",
+  forestAllosaurus: "https://res.cloudinary.com/dsdxaxkiz/video/upload/v1779624998/Forest-Allosaurus.mp4",
+  stegosaurusMist: "https://res.cloudinary.com/dsdxaxkiz/video/upload/v1779624998/Stegosaurus-in-the-Mist.mp4",
+  desertTheropod: "https://res.cloudinary.com/dsdxaxkiz/video/upload/v1779624998/Desert-Theropod-Sprint.mp4",
+  modernCityTrex: "https://media.giphy.com/media/your-gif-id/giphy.gif",
+};
+</script>
 </head>
 <body>
 
@@ -1057,8 +1068,11 @@ footer {
   <!-- Background video reel -->
   <div class="hero-reel" id="heroReel">
     <video id="heroVideo" autoplay loop muted playsinline preload="auto">
-      <source src="Low-Angle T-Rex (istockphoto-1743079504).mp4" type="video/mp4">
+      <source src="" type="video/mp4">
     </video>
+    <script>
+      document.getElementById('heroVideo').src = VIDEO_URLS.heroLowAngleTrex;
+    </script>
   </div>
 
   <!-- 3D grid overlay -->
@@ -1153,7 +1167,7 @@ footer {
        id="featuredHabitat">
     <span class="habitat-badge-3d">4K Footage · Live Habitat</span>
     <video autoplay loop muted playsinline preload="auto"
-           src="Coastal Pterosaurs (istockphoto-1794670031).mp4"></video>
+           src="" data-video-key="coastalPterosaurs"></video>
     <div class="habitat-featured-label">
       <span class="habitat-kicker">Flight Sequence — Coastal Habitat</span>
       <h3 class="habitat-name">Coastal<br>Pterosaurs</h3>
@@ -1255,7 +1269,7 @@ footer {
          data-title="Coastal Pterosaurs"
          data-period="Late Cretaceous · 86–66 Ma">
       <video loop muted playsinline preload="none"
-             data-lazy="Coastal Pterosaurs (istockphoto-1794670031).mp4"></video>
+             data-video-key="coastalPterosaurs"></video>
       <div class="reel-item-label">Coastal Pterosaurs</div>
     </div>
     <div class="reel-item"
@@ -1851,6 +1865,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fallback for cached videos
     if (hv.readyState >= 3) hv.style.opacity = '1';
   }
+});
+
+/* Load video URLs dynamically */
+document.addEventListener('DOMContentLoaded', () => {
+  // Load video URLs from VIDEO_URLS object
+  const videoElements = document.querySelectorAll('video[data-video-key], video[data-lazy]');
+  videoElements.forEach(video => {
+    const key = video.getAttribute('data-video-key') || video.getAttribute('data-lazy');
+    if (key && VIDEO_URLS[key]) {
+      video.src = VIDEO_URLS[key];
+      video.load();
+    }
+  });
+
+  // Update modal video handler to use VIDEO_URLS
+  const cards = document.querySelectorAll('[data-video-key]');
+  cards.forEach(card => {
+    card.addEventListener('click', function() {
+      const key = this.getAttribute('data-video-key');
+      if (key && VIDEO_URLS[key]) {
+        openModal(VIDEO_URLS[key], this.dataset.title, this.dataset.period);
+      }
+    });
+  });
 });
 </script>
 </body>
