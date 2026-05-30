@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PALEO — Prehistoric World | Natural History Museum</title>
+<meta name="description" content="Journey 230 million years into the past. Explore our world-class collection of dinosaur specimens, cinematic habitat footage, and interactive 3D exhibitions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Grotesk:wght@300;400;500&family=Bebas+Neue&family=Inter:wght@200;300;400&display=swap" rel="stylesheet">
+
+<!-- GSAP for scroll-driven animations -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+
+<style>
+/* ════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════ */
+:root {
+  --bone: #f1e5d0;
+  --bone-dark: #d7c5ab;
+  --stone: #1a1510;
+  --stone-mid: #211b15;
+  --stone-light: #2e2419;
+  --amber: #c4891e;
+  --amber-light: #e8a833;
+  --amber-glow: rgba(196,137,30,0.18);
+  --text-muted: #8a7560;
+  --text-body: #c8bfaf;
+  --red-accent: #8b2f2f;
+  --teal-accent: #1a4a4a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--stone);
+  color: var(--bone);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ════════════════════════════════════════
+   PRELOADER
+════════════════════════════════════════ */
+#preloader {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #0d0b08;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2rem;
+  transition: opacity 0.8s ease, visibility 0.8s;
+}
+#preloader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.preloader-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 8vw, 6rem);
+  letter-spacing: 0.2em;
+  color: var(--bone);
+}
+.preloader-logo span { color: var(--amber); }
+
+.preloader-track {
+  width: 280px; height: 2px;
+  background: rgba(241,229,208,0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.preloader-bar {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: linear-gradient(to right, var(--amber), var(--amber-light));
+  width: 0%; transition: width 0.05s linear;
+  border-radius: 2px;
+}
+.preloader-text {
+  font-size: 0.55rem; letter-spacing: 0.4em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Footprint animation */
+.footprints {
+  display: flex; gap: 1.2rem; align-items: flex-end;
+}
+.footprint {
+  font-size: 1.4rem;
+  opacity: 0;
+  animation: stepIn 0.5s ease forwards;
+}
+.footprint:nth-child(1) { animation-delay: 0.1s; transform: rotate(-20deg); }
+.footprint:nth-child(2) { animation-delay: 0.3s; transform: rotate(15deg); }
+.footprint:nth-child(3) { animation-delay: 0.5s; transform: rotate(-10deg); }
+.footprint:nth-child(4) { animation-delay: 0.7s; transform: rotate(20deg); }
+.footprint:nth-child(5) { animation-delay: 0.9s; transform: rotate(-15deg); }
+
+@keyframes stepIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.7); }
+  to   { opacity: 0.6; transform: translateY(0) scale(1); }
+}
+
+/* ════════════════════════════════════════
+   CUSTOM CURSOR
+════════════════════════════════════════ */
+.cursor {
+  position: fixed; width: 10px; height: 10px;
+  background: var(--amber);
+  border-radius: 50%;
+  pointer-events: none; z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: width 0.25s, height 0.25s, background 0.25s;
+  mix-blend-mode: exclusion;
+}
+.cursor-ring {
+  position: fixed; width: 36px; height: 36px;
+  border: 1px solid rgba(196,137,30,0.5);
+  border-radius: 50%;
+  pointer-events: none; z-index: 9997;
+  transform: translate(-50%, -50%);
+  transition: left 0.1s ease, top 0.1s ease, width 0.25s, height 0.25s, border-color 0.25s;
+}
+body:hover .cursor { opacity: 1; }
+.cursor.hovering { width: 6px; height: 6px; background: var(--bone); }
+.cursor-ring.hovering { width: 48px; height: 48px; border-color: var(--amber); }
+
+/* Noise grain overlay */
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 8000; opacity: 0.25;
+}
+
+/* ════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+  padding: 1.2rem 3rem;
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(to bottom, rgba(13,11,8,0.92), transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 0.5px solid rgba(241,229,208,0.05);
+  transition: padding 0.3s;
+}
+nav.scrolled { padding: 0.8rem 3rem; background: rgba(13,11,8,0.97); }
+.nav-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem; letter-spacing: 0.18em;
+  color: var(--bone); text-decoration: none;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.nav-logo .dot { color: var(--amber); font-size: 2rem; line-height: 0; }
+.nav-links { display: flex; gap: 2.5rem; list-style: none; }
+.nav-links a {
+  font-size: 0.6rem; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--text-muted); text-decoration: none;
+  position: relative; transition: color 0.3s;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -4px; left: 0; right: 0;
+  height: 0.5px; background: var(--amber);
+  transform: scaleX(0); transition: transform 0.3s;
+  transform-origin: left;
+}
+.nav-links a:hover { color: var(--bone); }
+.nav-links a:hover::after { transform: scaleX(1); }
+
+.nav-actions { display: flex; align-items: center; gap: 1.5rem; }
+.nav-ticket {
+  font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+  padding: 0.55rem 1.4rem;
+  border: 0.5px solid var(--amber); color: var(--amber);
+  background: transparent; cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+  position: relative; overflow: hidden;
+}
+.nav-ticket::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--amber); transform: scaleX(0);
+  transform-origin: left; transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.nav-ticket:hover::before { transform: scaleX(1); }
+.nav-ticket:hover { color: var(--stone); }
+.nav-ticket span { position: relative; z-index: 1; }
+
+/* ════════════════════════════════════════
+   HERO
+════════════════════════════════════════ */
+.hero {
+  position: relative; min-height: 100vh;
+  display: grid; align-items: end;
+  padding: 0 3rem 5rem;
+  overflow: hidden;
+}
+
+/* Full-bleed cinematic video */
+.hero-reel {
+  position: absolute; inset: 0; z-index: 0;
+}
+.hero-reel video {
+  width: 100%; height: 100%; object-fit: cover;
+  will-change: transform;
+}
+/* Cinematic letterbox overlay */
+.hero-reel::before {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background:
+    linear-gradient(to bottom, rgba(13,11,8,0.55) 0%, transparent 20%, transparent 65%, rgba(13,11,8,0.95) 100%),
+    linear-gradient(to right, rgba(13,11,8,0.6) 0%, transparent 50%);
+}
+
+/* 3D depth grid lines */
+.hero-grid {
+  position: absolute; inset: 0; z-index: 2;
+  background-image:
+    linear-gradient(rgba(196,137,30,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(196,137,30,0.03) 1px, transparent 1px);
+  background-size: 80px 80px;
+  transform: perspective(600px) rotateX(15deg) scale(1.2);
+  transform-origin: bottom center;
+  pointer-events: none;
+}
+
+/* Vignette */
+.hero-vignette {
+  position: absolute; inset: 0; z-index: 2;
+  background: radial-gradient(ellipse 80% 60% at center, transparent 30%, rgba(13,11,8,0.5) 100%);
+  pointer-events: none;
+}
+
+/* Cinematic side bars */
+.hero-bars {
+  position: absolute; inset: 0; z-index: 2;
+  pointer-events: none;
+}
+.hero-bars::before, .hero-bars::after {
+  content: ''; position: absolute;
+  left: 0; right: 0; height: 60px;
+  background: #0d0b08;
+}
+.hero-bars::before { top: 0; }
+.hero-bars::after { bottom: 0; }
+
+.hero-content {
+  position: relative; z-index: 10;
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: end; gap: 4rem;
+}
+
+/* Giant display title */
+.hero-headline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(5.5rem, 13vw, 13rem);
+  font-weight: 300; line-height: 0.85;
+  letter-spacing: -0.025em;
+}
+.hero-headline .line { display: block; overflow: hidden; }
+.hero-headline .word {
+  display: inline-block;
+  transform: translateY(105%);
+  opacity: 0;
+  transition: transform 1.1s cubic-bezier(0.16,1,0.3,1), opacity 0.9s ease;
+}
+.hero-headline .word.up { transform: translateY(0); opacity: 1; }
+.hero-headline em { font-style: italic; color: var(--amber); }
+
+/* Subline badges */
+.hero-badges {
+  display: flex; align-items: center; gap: 1rem;
+  margin-top: 1.5rem;
+}
+.badge {
+  font-size: 0.52rem; letter-spacing: 0.3em; text-transform: uppercase;
+  padding: 0.45rem 1rem;
+  border: 0.5px solid rgba(241,229,208,0.18);
+  color: var(--text-body);
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  background: rgba(255,255,255,0.03);
+}
+.badge.accent { border-color: var(--amber); color: var(--amber); }
+.badge-sep { color: var(--text-muted); font-size: 0.6rem; }
+
+/* Hero right info column */
+.hero-side {
+  display: flex; flex-direction: column;
+  align-items: flex-end; gap: 1.5rem;
+}
+.hero-desc {
+  font-size: 0.78rem; color: var(--text-body); line-height: 1.85;
+  max-width: 250px; text-align: right; letter-spacing: 0.02em;
+}
+
+.hero-stats {
+  display: flex; flex-direction: column; gap: 1.2rem;
+  align-items: flex-end;
+  padding: 1.5rem;
+  border: 0.5px solid rgba(241,229,208,0.08);
+  background: rgba(13,11,8,0.5);
+  backdrop-filter: blur(10px);
+}
+.stat { text-align: right; }
+.stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.8rem; line-height: 1;
+  color: var(--bone); display: block;
+}
+.stat-label {
+  font-size: 0.5rem; letter-spacing: 0.35em; text-transform: uppercase;
+  color: var(--text-muted); display: block;
+}
+
+/* Scroll indicator */
+.hero-scroll {
+  position: absolute; left: 3rem; bottom: 3.5rem; z-index: 10;
+  display: flex; align-items: center; gap: 1rem;
+  writing-mode: vertical-lr; font-size: 0.5rem;
+  letter-spacing: 0.35em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.hero-scroll-line {
+  width: 0.5px; height: 50px;
+  background: linear-gradient(to bottom, transparent, var(--amber));
+  animation: scPulse 2s ease-in-out infinite;
+}
+@keyframes scPulse {
+  0%,100% { transform: scaleY(1); opacity: 1; }
+  50% { transform: scaleY(0.4); opacity: 0.3; }
+}
+
+/* Hero ambient particles */
+.particles { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.particle {
+  position: absolute; border-radius: 50%;
+  background: var(--amber); opacity: 0;
+  animation: floatUp linear infinite;
+}
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  8% { opacity: 0.7; }
+  90% { opacity: 0.25; }
+  100% { transform: translateY(-100vh) scale(0.3); opacity: 0; }
+}
+
+/* ════════════════════════════════════════
+   MARQUEE TICKER
+════════════════════════════════════════ */
+.marquee-wrap {
+  background: rgba(13,11,8,0.8);
+  border-top: 0.5px solid rgba(196,137,30,0.15);
+  border-bottom: 0.5px solid rgba(196,137,30,0.15);
+  overflow: hidden; padding: 0.75rem 0;
+}
+.marquee-track {
+  display: flex; gap: 2.5rem; width: max-content;
+  animation: ticker 30s linear infinite;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.9rem; letter-spacing: 0.18em;
+  color: var(--text-muted);
+}
+.marquee-track .accent { color: var(--amber); }
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ════════════════════════════════════════
+   SECTION COMMONS
+════════════════════════════════════════ */
+.section-tag {
+  display: block; font-size: 0.55rem;
+  letter-spacing: 0.32em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 0.8rem;
+}
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+  font-weight: 300; line-height: 1.05;
+  color: var(--bone);
+}
+.section-title em { font-style: italic; color: var(--amber); }
+.section-header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 3.5rem;
+}
+.section-link {
+  font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--text-muted); text-decoration: none;
+  border-bottom: 0.5px solid currentColor; padding-bottom: 2px;
+  transition: color 0.3s;
+}
+.section-link:hover { color: var(--amber); }
+
+/* ════════════════════════════════════════
+   HABITAT VIDEO GALLERY — the centrepiece
+════════════════════════════════════════ */
+.habitats {
+  padding: 7rem 3rem;
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(196,137,30,0.04), transparent 60%),
+    var(--stone-mid);
+  position: relative; overflow: hidden;
+}
+
+/* Ambient ring background */
+.habitats::before {
+  content: ''; position: absolute;
+  width: 700px; height: 700px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(196,137,30,0.06);
+  top: -200px; right: -200px;
+  pointer-events: none;
+}
+.habitats::after {
+  content: ''; position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(196,137,30,0.04);
+  bottom: -150px; left: -150px;
+  pointer-events: none;
+}
+
+/* ── FEATURED HABITAT (large 16:9) ── */
+.habitat-featured {
+  position: relative; overflow: hidden;
+  border-radius: 4px;
+  aspect-ratio: 16/7;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  border: 0.5px solid rgba(241,229,208,0.08);
+  box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+}
+.habitat-featured video {
+  width: 100%; height: 100%; object-fit: cover;
+  display: block;
+  transition: transform 8s ease;
+  will-change: transform;
+}
+.habitat-featured:hover video { transform: scale(1.04); }
+
+/* Cinematic overlay */
+.habitat-featured::before {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background:
+    linear-gradient(to top, rgba(13,11,8,0.85) 0%, rgba(13,11,8,0.1) 40%, transparent 70%),
+    linear-gradient(to right, rgba(13,11,8,0.4) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.habitat-featured-label {
+  position: absolute; left: 2.5rem; bottom: 2.5rem; z-index: 3;
+}
+.habitat-kicker {
+  font-size: 0.52rem; letter-spacing: 0.32em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 0.5rem; display: block;
+}
+.habitat-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 300; color: var(--bone);
+  line-height: 1.05;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.8);
+}
+.habitat-desc {
+  font-size: 0.72rem; color: var(--text-body); line-height: 1.7;
+  max-width: 380px; margin-top: 0.75rem;
+  opacity: 0.9;
+}
+
+.habitat-play-btn {
+  position: absolute; right: 2.5rem; bottom: 2.5rem; z-index: 3;
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 1px solid rgba(196,137,30,0.5);
+  background: rgba(13,11,8,0.5); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.35s;
+  color: var(--amber);
+}
+.habitat-play-btn:hover {
+  background: var(--amber); color: var(--stone);
+  border-color: var(--amber);
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(196,137,30,0.4);
+}
+.habitat-play-btn svg { margin-left: 3px; }
+
+/* 3D depth badge top-right */
+.habitat-badge-3d {
+  position: absolute; top: 1.5rem; right: 1.5rem; z-index: 3;
+  font-size: 0.48rem; letter-spacing: 0.28em; text-transform: uppercase;
+  padding: 0.45rem 0.9rem;
+  border: 0.5px solid rgba(241,229,208,0.2);
+  background: rgba(13,11,8,0.5); backdrop-filter: blur(10px);
+  color: var(--bone); border-radius: 999px;
+}
+
+/* ── SMALL HABITAT GRID (5 cards) ── */
+.habitat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.habitat-card {
+  position: relative; overflow: hidden;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 0.5px solid rgba(241,229,208,0.07);
+  background: #111;
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s;
+  transform-style: preserve-3d;
+}
+.habitat-card::before {
+  content: ''; position: absolute; inset: 0; z-index: 2;
+  background: linear-gradient(to top, rgba(13,11,8,0.9) 0%, rgba(13,11,8,0.1) 60%, transparent 100%);
+  pointer-events: none;
+}
+.habitat-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(196,137,30,0.2);
+  z-index: 5;
+}
+
+.habitat-card video,
+.habitat-card img {
+  width: 100%; aspect-ratio: 9/16; object-fit: cover;
+  display: block;
+  transition: transform 0.6s ease;
+  will-change: transform;
+}
+.habitat-card:hover video,
+.habitat-card:hover img { transform: scale(1.06); }
+
+.habitat-card-label {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 3;
+  padding: 1.2rem 1rem;
+}
+.habitat-card-kicker {
+  font-size: 0.45rem; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 0.3rem; display: block;
+}
+.habitat-card-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem; font-weight: 400;
+  color: var(--bone); line-height: 1.1;
+}
+
+/* 3D tilt hover effect using CSS */
+.habitat-card .card-shine {
+  position: absolute; inset: 0; z-index: 4;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255,255,255,0.07), transparent 60%);
+  opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+}
+.habitat-card:hover .card-shine { opacity: 1; }
+
+/* ════════════════════════════════════════
+   FULLSCREEN VIDEO MODAL
+════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 6000;
+  background: rgba(0,0,0,0);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.4s ease, background 0.4s ease;
+  backdrop-filter: blur(0px);
+}
+.modal-overlay.open {
+  opacity: 1; visibility: visible;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(12px);
+}
+.modal-inner {
+  position: relative; width: 92vw; max-width: 1400px;
+  transform: scale(0.93) translateY(20px);
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.modal-overlay.open .modal-inner { transform: scale(1) translateY(0); }
+.modal-inner video {
+  width: 100%; display: block;
+  border-radius: 4px;
+  box-shadow: 0 60px 120px rgba(0,0,0,0.8);
+}
+.modal-close {
+  position: absolute; top: -3rem; right: 0;
+  font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--text-muted); cursor: pointer;
+  transition: color 0.3s;
+  background: none; border: none;
+  display: flex; align-items: center; gap: 0.5rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+.modal-close:hover { color: var(--bone); }
+
+.modal-meta {
+  position: absolute; left: 0; bottom: -3.5rem;
+  display: flex; gap: 2rem; align-items: center;
+}
+.modal-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem; color: var(--bone); font-weight: 300;
+}
+.modal-period { font-size: 0.6rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--amber); }
+
+/* ════════════════════════════════════════
+   3D EXHIBIT CARDS
+════════════════════════════════════════ */
+.exhibits {
+  padding: 7rem 3rem;
+  background: var(--stone);
+  position: relative;
+}
+
+.exhibits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) 1.4fr;
+  grid-template-rows: auto auto;
+  gap: 1px;
+  background: rgba(241,229,208,0.06);
+  border: 1px solid rgba(241,229,208,0.06);
+}
+
+.exhibit-card {
+  position: relative; overflow: hidden;
+  aspect-ratio: 3/4; cursor: pointer;
+  background: var(--stone-mid);
+  perspective: 900px;
+}
+.exhibit-card.tall { aspect-ratio: auto; grid-row: span 2; }
+
+.card-media {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+  transition: transform 0.7s cubic-bezier(0.16,1,0.3,1), filter 0.6s;
+  filter: saturate(0.5) brightness(0.65) sepia(0.4);
+  transform-origin: center;
+}
+.exhibit-card:hover .card-media {
+  transform: scale(1.09);
+  filter: saturate(0.75) brightness(0.8) sepia(0.15);
+}
+
+.card-overlay-grad {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(13,11,8,0.98) 0%, rgba(13,11,8,0.2) 55%, transparent 100%);
+  transition: background 0.5s;
+}
+.exhibit-card:hover .card-overlay-grad {
+  background: linear-gradient(to top, rgba(13,11,8,0.9) 0%, rgba(13,11,8,0.1) 60%, transparent 100%);
+}
+
+.card-info {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 2rem 1.5rem;
+  transform: translateY(8px);
+  transition: transform 0.4s;
+}
+.exhibit-card:hover .card-info { transform: translateY(0); }
+
+.card-era {
+  font-size: 0.5rem; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 0.5rem; display: block;
+}
+.card-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.3rem, 2vw, 2rem);
+  font-weight: 400; color: var(--bone);
+  line-height: 1.1; margin-bottom: 0.75rem;
+}
+.card-body {
+  font-size: 0.68rem; color: var(--text-body); line-height: 1.7;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 0.35s 0.05s, transform 0.35s 0.05s;
+}
+.exhibit-card:hover .card-body { opacity: 1; transform: translateY(0); }
+
+/* Corner accent */
+.card-corner {
+  position: absolute; top: 1.2rem; left: 1.2rem;
+  width: 30px; height: 30px;
+  border-top: 0.5px solid var(--amber);
+  border-left: 0.5px solid var(--amber);
+  opacity: 0; transform: translate(-6px,-6px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+.exhibit-card:hover .card-corner { opacity: 1; transform: translate(0,0); }
+
+/* 3D shimmer */
+.card-shimmer {
+  position: absolute; inset: 0; z-index: 4;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,255,255,0.03) 100%);
+  opacity: 0; transition: opacity 0.4s;
+  pointer-events: none;
+}
+.exhibit-card:hover .card-shimmer { opacity: 1; }
+
+/* ════════════════════════════════════════
+   SPECIMEN SECTION (3D depth frame)
+════════════════════════════════════════ */
+.specimen {
+  padding: 8rem 3rem;
+  background: var(--stone-mid);
+  position: relative; overflow: hidden;
+}
+/* Ghost text background */
+.specimen-ghost {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28vw; color: rgba(196,137,30,0.02);
+  white-space: nowrap; letter-spacing: -0.04em;
+  pointer-events: none; user-select: none;
+  line-height: 1;
+}
+
+.specimen-grid {
+  display: grid; grid-template-columns: 1.1fr 1fr;
+  gap: 7rem; align-items: center;
+  position: relative; z-index: 2;
+}
+
+/* 3D frame visual */
+.specimen-visual { perspective: 1200px; }
+.specimen-frame-wrap {
+  position: relative;
+  transform: rotateY(-10deg) rotateX(5deg);
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+.specimen-frame-wrap:hover { transform: rotateY(-2deg) rotateX(1deg); }
+
+.specimen-img-wrap {
+  position: relative; overflow: hidden;
+  border: 0.5px solid rgba(196,137,30,0.15);
+  box-shadow:
+    0 40px 80px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(196,137,30,0.08);
+}
+.specimen-img-wrap img {
+  width: 100%; display: block;
+  filter: sepia(0.3) saturate(0.7) brightness(0.9) contrast(1.08);
+  transition: filter 0.5s;
+}
+.specimen-img-wrap:hover img { filter: sepia(0.15) saturate(0.9) brightness(0.95); }
+
+/* 3D depth shadow layer */
+.specimen-shadow-a {
+  position: absolute; inset: 0; z-index: -1;
+  background: rgba(196,137,30,0.06);
+  transform: translateZ(-30px) translateX(24px) translateY(24px);
+  border: 0.5px solid rgba(196,137,30,0.08);
+}
+.specimen-shadow-b {
+  position: absolute; inset: 0; z-index: -2;
+  background: rgba(0,0,0,0.3);
+  transform: translateZ(-60px) translateX(48px) translateY(48px);
+}
+
+/* Cross-hair measurement lines */
+.spec-line { position: absolute; background: var(--amber); opacity: 0.4; }
+.spec-line-h { height: 0.5px; left: -3rem; right: -3rem; top: 42%; }
+.spec-line-v { width: 0.5px; top: -3rem; bottom: -3rem; left: 28%; }
+.spec-label {
+  position: absolute; font-size: 0.45rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--amber); white-space: nowrap;
+  background: rgba(13,11,8,0.7); padding: 2px 5px;
+}
+
+/* Specimen data */
+.specimen-info { position: relative; padding: 1rem 0; }
+.specimen-number {
+  position: absolute; top: -2rem; right: 0;
+  font-family: 'Bebas Neue', sans-serif; font-size: 8rem;
+  color: rgba(196,137,30,0.05); line-height: 1;
+  pointer-events: none;
+}
+.specimen-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.8rem, 4.5vw, 5rem);
+  font-weight: 300; line-height: 0.95;
+  margin-bottom: 0.5rem;
+}
+.specimen-title em { font-style: italic; color: var(--amber); }
+.specimen-sub {
+  font-size: 0.6rem; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 2rem;
+}
+.specimen-body {
+  font-size: 0.82rem; color: var(--text-body); line-height: 1.95;
+  margin-bottom: 2.5rem; max-width: 480px;
+}
+
+.spec-data-row {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 1.5rem; margin-bottom: 2.5rem;
+  padding: 1.5rem 0;
+  border-top: 0.5px solid rgba(241,229,208,0.07);
+  border-bottom: 0.5px solid rgba(241,229,208,0.07);
+}
+.spec-datum-label {
+  font-size: 0.48rem; letter-spacing: 0.32em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 0.35rem;
+}
+.spec-datum-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.2rem; font-weight: 300; color: var(--bone); line-height: 1;
+}
+.spec-datum-unit { font-size: 0.7rem; color: var(--amber); margin-left: 0.15rem; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 0.8rem;
+  padding: 0.9rem 2.2rem;
+  border: 0.5px solid var(--amber); color: var(--bone);
+  background: transparent; font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
+  cursor: pointer; text-decoration: none;
+  position: relative; overflow: hidden; transition: color 0.35s;
+}
+.btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--amber); transform: scaleX(0);
+  transform-origin: left; transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.btn:hover::before { transform: scaleX(1); }
+.btn:hover { color: var(--stone); }
+.btn span, .btn svg { position: relative; z-index: 1; }
+
+/* ════════════════════════════════════════
+   IMMERSIVE VIDEO REEL — full width strip
+════════════════════════════════════════ */
+.reel-section {
+  position: relative; overflow: hidden;
+  background: #0d0b08;
+}
+.reel-strip {
+  display: flex; gap: 0;
+  width: max-content;
+  animation: reelScroll 40s linear infinite;
+}
+.reel-strip:hover { animation-play-state: paused; }
+@keyframes reelScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.reel-item {
+  width: 380px; flex-shrink: 0;
+  position: relative; overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.4s;
+}
+.reel-item:hover { transform: scaleY(1.04); z-index: 5; }
+.reel-item video, .reel-item img {
+  width: 100%; height: 260px; object-fit: cover;
+  display: block;
+  filter: brightness(0.7) saturate(0.6);
+  transition: filter 0.4s;
+}
+.reel-item:hover video, .reel-item:hover img {
+  filter: brightness(0.9) saturate(1);
+}
+.reel-item-label {
+  position: absolute; bottom: 0.8rem; left: 0.8rem;
+  font-size: 0.55rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--bone); background: rgba(13,11,8,0.7);
+  padding: 0.3rem 0.7rem; backdrop-filter: blur(6px);
+}
+
+/* ════════════════════════════════════════
+   TIMELINE
+════════════════════════════════════════ */
+.timeline {
+  padding: 7rem 3rem;
+  background: var(--stone);
+  position: relative; overflow: hidden;
+}
+
+.timeline-wrap { position: relative; margin-top: 4rem; }
+.timeline-spine {
+  position: absolute; left: 50%; top: 0; bottom: 0;
+  width: 0.5px;
+  background: linear-gradient(to bottom, var(--amber), rgba(196,137,30,0.05));
+  transform: translateX(-50%);
+}
+
+.t-item {
+  display: grid; grid-template-columns: 1fr 60px 1fr;
+  align-items: center; margin-bottom: 4rem;
+}
+.t-item:nth-child(even) .t-left { order: 3; text-align: left; padding-left: 3rem; padding-right: 0; }
+.t-item:nth-child(even) .t-right { order: 1; text-align: right; padding-right: 3rem; padding-left: 0; }
+.t-item:nth-child(even) .t-center { order: 2; }
+
+.t-left { text-align: right; padding-right: 3rem; }
+.t-right { text-align: left; padding-left: 3rem; }
+
+.t-period { font-size: 0.5rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--amber); margin-bottom: 0.4rem; }
+.t-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem; font-weight: 300; color: var(--bone);
+  line-height: 1.15; margin-bottom: 0.3rem;
+}
+.t-years { font-size: 0.65rem; color: var(--text-muted); }
+.t-desc { font-size: 0.72rem; color: var(--text-body); line-height: 1.7; margin-top: 0.5rem; max-width: 280px; }
+.t-left .t-desc { margin-left: auto; }
+
+.t-center { display: flex; align-items: center; justify-content: center; }
+.t-dot-outer {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--stone); border: 0.5px solid var(--amber);
+  box-shadow: 0 0 0 6px rgba(196,137,30,0.08), 0 0 20px rgba(196,137,30,0.25);
+  display: flex; align-items: center; justify-content: center;
+}
+.t-dot-inner { width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+
+/* ════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════ */
+footer {
+  padding: 5rem 3rem 2rem;
+  background: #0d0b08;
+  border-top: 0.5px solid rgba(241,229,208,0.05);
+}
+.footer-top {
+  display: grid; grid-template-columns: 2.2fr 1fr 1fr 1fr;
+  gap: 5rem; margin-bottom: 5rem;
+}
+.footer-brand-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem; letter-spacing: 0.12em; margin-bottom: 1rem;
+}
+.footer-brand-name span { color: var(--amber); }
+.footer-tagline { font-size: 0.75rem; color: var(--text-muted); line-height: 1.85; max-width: 260px; }
+.footer-col-title {
+  font-size: 0.52rem; letter-spacing: 0.35em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 1.5rem;
+}
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; }
+.footer-links a { font-size: 0.78rem; color: var(--text-muted); text-decoration: none; transition: color 0.3s; }
+.footer-links a:hover { color: var(--bone); }
+.footer-bottom {
+  border-top: 0.5px solid rgba(241,229,208,0.05);
+  padding-top: 2rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.footer-copy { font-size: 0.56rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-muted); }
+
+/* ════════════════════════════════════════
+   SCROLL REVEAL
+════════════════════════════════════════ */
+.reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.85s ease, transform 0.85s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-left { opacity: 0; transform: translateX(-30px); transition: opacity 0.85s ease, transform 0.85s ease; }
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+.reveal-scale { opacity: 0; transform: scale(0.95); transition: opacity 0.85s ease, transform 0.85s ease; }
+.reveal-scale.visible { opacity: 1; transform: scale(1); }
+.d1 { transition-delay: 0.08s; }
+.d2 { transition-delay: 0.16s; }
+.d3 { transition-delay: 0.24s; }
+.d4 { transition-delay: 0.32s; }
+.d5 { transition-delay: 0.40s; }
+
+/* ════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .habitat-grid { grid-template-columns: repeat(3, 1fr); }
+  .exhibits-grid { grid-template-columns: 1fr 1fr; }
+  .exhibit-card.tall { grid-row: auto; aspect-ratio: 3/4; }
+  .footer-top { grid-template-columns: 1fr 1fr; gap: 3rem; }
+}
+@media (max-width: 768px) {
+  nav { padding: 1rem 1.5rem; }
+  .nav-links, .nav-actions { display: none; }
+  .hero { padding: 0 1.5rem 4rem; }
+  .hero-content { grid-template-columns: 1fr; }
+  .hero-side { display: none; }
+  .hero-headline { font-size: clamp(4rem, 15vw, 7rem); }
+  .habitats { padding: 5rem 1.5rem; }
+  .habitat-grid { grid-template-columns: 1fr 1fr; }
+  .exhibits { padding: 5rem 1.5rem; }
+  .exhibits-grid { grid-template-columns: 1fr; }
+  .specimen-grid { grid-template-columns: 1fr; gap: 4rem; }
+  .timeline-spine { display: none; }
+  .t-item { grid-template-columns: 1fr; }
+  .t-left, .t-right { text-align: left; padding: 0; }
+  .t-center { justify-content: flex-start; padding: 0.5rem 0; }
+  .footer-top { grid-template-columns: 1fr; gap: 2.5rem; }
+}
+</style>
+<script>
+// Video URLs Configuration - GitHub Releases
+const VIDEO_URLS = {
+  heroLowAngleTrex: "https://github.com/ABHI-B-CREATOR/dinosaur-museum/releases/download/MP4/Low-Angle-T-Rex.istockphoto-1743079504.mp4",
+  coastalPterosaurs: "https://github.com/ABHI-B-CREATOR/dinosaur-museum/releases/download/MP4/Coastal.Pterosaurs.istockphoto-1794670031.mp4",
+  forestAllosaurus: "https://github.com/ABHI-B-CREATOR/dinosaur-museum/releases/download/MP4/Forest.Allosaurus.3844767023-preview.mp4",
+  stegosaurusMist: "https://github.com/ABHI-B-CREATOR/dinosaur-museum/releases/download/MP4/Stegosaurus.in.the.Mist.istockphoto-2234422776.mp4",
+  desertTheropod: "https://github.com/ABHI-B-CREATOR/dinosaur-museum/releases/download/MP4/Desert.Theropod.Sprint.istockphoto-2275248144.mp4",
+  modernCityTrex: "https://github.com/ABHI-B-CREATOR/dinosaur-museum/releases/download/MP4/Modern.City.T-Rex.Video.Game.City.GIF.by.CAPCOM.gif",
+};
+</script>
+</head>
+<body>
+
+<!-- ──────────────────────────────────────
+     PRELOADER
+────────────────────────────────────────── -->
+<div id="preloader">
+  <div class="footprints">
+    <span class="footprint">🦕</span>
+    <span class="footprint">🦖</span>
+    <span class="footprint">🦕</span>
+    <span class="footprint">🦖</span>
+    <span class="footprint">🦕</span>
+  </div>
+  <div class="preloader-logo">PALEO<span>.</span></div>
+  <div class="preloader-track">
+    <div class="preloader-bar" id="preloaderBar"></div>
+  </div>
+  <div class="preloader-text">Loading prehistoric world…</div>
+</div>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- MODAL OVERLAY -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-label="Video player">
+  <div class="modal-inner">
+    <button class="modal-close" id="modalClose">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Close
+    </button>
+    <video id="modalVideo" controls preload="none" playsinline></video>
+    <div class="modal-meta">
+      <div>
+        <div class="modal-period" id="modalPeriod"></div>
+        <div class="modal-title" id="modalTitle"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────
+     NAVIGATION
+────────────────────────────────────────── -->
+<nav id="mainNav">
+  <a href="#" class="nav-logo" id="navLogo">PALEO<span class="dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="#habitats">Habitats</a></li>
+    <li><a href="#exhibits">Exhibits</a></li>
+    <li><a href="#specimen">Specimens</a></li>
+    <li><a href="#timeline">Timeline</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="nav-ticket" id="navTicket"><span>Plan Your Visit</span></button>
+  </div>
+</nav>
+
+<!-- ──────────────────────────────────────
+     HERO
+────────────────────────────────────────── -->
+<section class="hero" id="hero">
+  <!-- Cinematic bars -->
+  <div class="hero-bars"></div>
+
+  <!-- Background video reel -->
+  <div class="hero-reel" id="heroReel">
+    <video id="heroVideo" autoplay loop muted playsinline preload="auto">
+      <source src="" type="video/mp4">
+    </video>
+    <script>
+      document.getElementById('heroVideo').src = VIDEO_URLS.heroLowAngleTrex;
+    </script>
+  </div>
+
+  <!-- 3D grid overlay -->
+  <div class="hero-grid"></div>
+  <div class="hero-vignette"></div>
+
+  <!-- Floating particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Hero content -->
+  <div class="hero-content">
+    <div>
+      <h1 class="hero-headline" id="heroTitle">
+        <span class="line"><span class="word" data-d="0.1">Sixty-Six</span></span>
+        <span class="line"><span class="word" data-d="0.25"><em>Million</em></span></span>
+        <span class="line"><span class="word" data-d="0.4">Years</span></span>
+        <span class="line"><span class="word" data-d="0.55">of <em>Wonder</em></span></span>
+      </h1>
+      <div class="hero-badges">
+        <span class="badge accent">Natural History Museum</span>
+        <span class="badge-sep">—</span>
+        <span class="badge">230 Ma · Triassic to Cretaceous</span>
+        <span class="badge-sep">—</span>
+        <span class="badge">12,000+ Specimens</span>
+      </div>
+    </div>
+
+    <div class="hero-side">
+      <p class="hero-desc">Step into the prehistoric world and discover the stories written in stone — millions of years before human memory.</p>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-num" data-count="12000" id="cnt1">0</span>
+          <span class="stat-label">Specimens</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" data-count="230" id="cnt2">0</span>
+          <span class="stat-label">Species</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" data-count="66" id="cnt3">0</span>
+          <span class="stat-label">Million Yrs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="hero-scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- MARQUEE TICKER -->
+<div class="marquee-wrap" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Tyrannosaurus Rex</span><span class="accent">✦</span>
+    <span>Stegosaurus Stenops</span><span class="accent">✦</span>
+    <span>Pteranodon Longiceps</span><span class="accent">✦</span>
+    <span>Allosaurus Fragilis</span><span class="accent">✦</span>
+    <span>Triceratops Horridus</span><span class="accent">✦</span>
+    <span>Velociraptor Mongoliensis</span><span class="accent">✦</span>
+    <span>Brachiosaurus Altithorax</span><span class="accent">✦</span>
+    <span>Spinosaurus Aegyptiacus</span><span class="accent">✦</span>
+    <span>Tyrannosaurus Rex</span><span class="accent">✦</span>
+    <span>Stegosaurus Stenops</span><span class="accent">✦</span>
+    <span>Pteranodon Longiceps</span><span class="accent">✦</span>
+    <span>Allosaurus Fragilis</span><span class="accent">✦</span>
+    <span>Triceratops Horridus</span><span class="accent">✦</span>
+    <span>Velociraptor Mongoliensis</span><span class="accent">✦</span>
+    <span>Brachiosaurus Altithorax</span><span class="accent">✦</span>
+    <span>Spinosaurus Aegyptiacus</span><span class="accent">✦</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────
+     HABITAT VIDEO GALLERY
+────────────────────────────────────────── -->
+<section class="habitats" id="habitats">
+  <div class="section-header reveal">
+    <div>
+      <span class="section-tag">[ 00 ] — Living Habitats</span>
+      <h2 class="section-title">Enter the<br><em>Prehistoric World</em></h2>
+    </div>
+    <a href="#" class="section-link">View All Footage →</a>
+  </div>
+
+  <!-- FEATURED: Coastal Pterosaurs -->
+  <div class="habitat-featured reveal-scale"
+       data-src="Coastal Pterosaurs (istockphoto-1794670031).mp4"
+       data-title="Coastal Pterosaurs"
+       data-period="Late Cretaceous · 86–66 Ma"
+       id="featuredHabitat">
+    <span class="habitat-badge-3d">4K Footage · Live Habitat</span>
+    <video autoplay loop muted playsinline preload="auto"
+           src="" data-video-key="coastalPterosaurs"></video>
+    <div class="habitat-featured-label">
+      <span class="habitat-kicker">Flight Sequence — Coastal Habitat</span>
+      <h3 class="habitat-name">Coastal<br>Pterosaurs</h3>
+      <p class="habitat-desc">Watch as a flock of Pteranodons glides over dramatic ocean cliffs, banking into the prehistoric sunset — one of nature's most breathtaking spectacles.</p>
+    </div>
+    <button class="habitat-play-btn" aria-label="Play fullscreen"
+            data-src="Coastal Pterosaurs (istockphoto-1794670031).mp4"
+            data-title="Coastal Pterosaurs"
+            data-period="Late Cretaceous · 86–66 Ma">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+    </button>
+  </div>
+
+  <!-- 5-card habitat grid -->
+  <div class="habitat-grid">
+
+    <!-- Card 1: Low-Angle T-Rex -->
+    <div class="habitat-card reveal d1"
+         data-src="Low-Angle T-Rex (istockphoto-1743079504).mp4"
+         data-title="Low-Angle T-Rex"
+         data-period="Late Cretaceous · 68–66 Ma">
+      <div class="card-shine"></div>
+      <video loop muted playsinline preload="none"
+             data-lazy="Low-Angle T-Rex (istockphoto-1743079504).mp4"></video>
+      <div class="habitat-card-label">
+        <span class="habitat-card-kicker">Predator · Apex</span>
+        <div class="habitat-card-name">Low-Angle<br>T-Rex</div>
+      </div>
+    </div>
+
+    <!-- Card 2: Forest Allosaurus -->
+    <div class="habitat-card reveal d2"
+         data-src="Forest Allosaurus (3844767025-preview).mp4"
+         data-title="Forest Allosaurus"
+         data-period="Late Jurassic · 155–150 Ma">
+      <div class="card-shine"></div>
+      <video loop muted playsinline preload="none"
+             data-lazy="Forest Allosaurus (3844767025-preview).mp4"></video>
+      <div class="habitat-card-label">
+        <span class="habitat-card-kicker">Woodland · Carnivore</span>
+        <div class="habitat-card-name">Forest<br>Allosaurus</div>
+      </div>
+    </div>
+
+    <!-- Card 3: Stegosaurus -->
+    <div class="habitat-card reveal d3"
+         data-src="Stegosaurus in the Mist (istockphoto-2234422776).mp4"
+         data-title="Stegosaurus in the Mist"
+         data-period="Late Jurassic · 155–150 Ma">
+      <div class="card-shine"></div>
+      <video loop muted playsinline preload="none"
+             data-lazy="Stegosaurus in the Mist (istockphoto-2234422776).mp4"></video>
+      <div class="habitat-card-label">
+        <span class="habitat-card-kicker">Swamp · Herbivore</span>
+        <div class="habitat-card-name">Stegosaurus<br>in the Mist</div>
+      </div>
+    </div>
+
+    <!-- Card 4: Desert Theropod -->
+    <div class="habitat-card reveal d4"
+         data-src="Desert Theropod Sprint (istockphoto-2275248144).mp4"
+         data-title="Desert Theropod Sprint"
+         data-period="Cretaceous · 100–66 Ma">
+      <div class="card-shine"></div>
+      <video loop muted playsinline preload="none"
+             data-lazy="Desert Theropod Sprint (istockphoto-2275248144).mp4"></video>
+      <div class="habitat-card-label">
+        <span class="habitat-card-kicker">Arid Desert · Speed</span>
+        <div class="habitat-card-name">Desert Theropod<br>Sprint</div>
+      </div>
+    </div>
+
+    <!-- Card 5: Modern City T-Rex GIF -->
+    <div class="habitat-card reveal d5"
+         data-src="Modern City T-Rex (Video Game City GIF by CAPCOM).gif"
+         data-title="Modern City T-Rex"
+         data-period="Cinematic · Urban Chaos"
+         data-type="gif">
+      <div class="card-shine"></div>
+      <img src="Modern City T-Rex (Video Game City GIF by CAPCOM).gif"
+           alt="Modern City T-Rex — Exoprimal"
+           loading="lazy">
+      <div class="habitat-card-label">
+        <span class="habitat-card-kicker">Urban · Cinematic</span>
+        <div class="habitat-card-name">Modern City<br>T-Rex</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ──────────────────────────────────────
+     SCROLLING REEL STRIP
+────────────────────────────────────────── -->
+<div class="reel-section" aria-hidden="true">
+  <div class="reel-strip" id="reelStrip">
+    <div class="reel-item"
+         data-src="Coastal Pterosaurs (istockphoto-1794670031).mp4"
+         data-title="Coastal Pterosaurs"
+         data-period="Late Cretaceous · 86–66 Ma">
+      <video loop muted playsinline preload="none"
+             data-video-key="coastalPterosaurs"></video>
+      <div class="reel-item-label">Coastal Pterosaurs</div>
+    </div>
+    <div class="reel-item"
+         data-src="Forest Allosaurus (3844767025-preview).mp4"
+         data-title="Forest Allosaurus"
+         data-period="Late Jurassic · 155–150 Ma">
+      <video loop muted playsinline preload="none"
+             data-lazy="Forest Allosaurus (3844767025-preview).mp4"></video>
+      <div class="reel-item-label">Forest Allosaurus</div>
+    </div>
+    <div class="reel-item"
+         data-src="Stegosaurus in the Mist (istockphoto-2234422776).mp4"
+         data-title="Stegosaurus in the Mist"
+         data-period="Late Jurassic · 155–150 Ma">
+      <video loop muted playsinline preload="none"
+             data-lazy="Stegosaurus in the Mist (istockphoto-2234422776).mp4"></video>
+      <div class="reel-item-label">Stegosaurus in the Mist</div>
+    </div>
+    <div class="reel-item"
+         data-src="Desert Theropod Sprint (istockphoto-2275248144).mp4"
+         data-title="Desert Theropod Sprint"
+         data-period="Cretaceous · 100–66 Ma">
+      <video loop muted playsinline preload="none"
+             data-lazy="Desert Theropod Sprint (istockphoto-2275248144).mp4"></video>
+      <div class="reel-item-label">Desert Theropod Sprint</div>
+    </div>
+    <div class="reel-item"
+         data-src="Low-Angle T-Rex (istockphoto-1743079504).mp4"
+         data-title="Low-Angle T-Rex"
+         data-period="Late Cretaceous · 68–66 Ma">
+      <video loop muted playsinline preload="none"
+             data-lazy="Low-Angle T-Rex (istockphoto-1743079504).mp4"></video>
+      <div class="reel-item-label">Low-Angle T-Rex</div>
+    </div>
+    <!-- Duplicate for seamless loop -->
+    <div class="reel-item">
+      <video loop muted playsinline preload="none" data-lazy="Coastal Pterosaurs (istockphoto-1794670031).mp4"></video>
+      <div class="reel-item-label">Coastal Pterosaurs</div>
+    </div>
+    <div class="reel-item">
+      <video loop muted playsinline preload="none" data-lazy="Forest Allosaurus (3844767025-preview).mp4"></video>
+      <div class="reel-item-label">Forest Allosaurus</div>
+    </div>
+    <div class="reel-item">
+      <video loop muted playsinline preload="none" data-lazy="Stegosaurus in the Mist (istockphoto-2234422776).mp4"></video>
+      <div class="reel-item-label">Stegosaurus in the Mist</div>
+    </div>
+    <div class="reel-item">
+      <video loop muted playsinline preload="none" data-lazy="Desert Theropod Sprint (istockphoto-2275248144).mp4"></video>
+      <div class="reel-item-label">Desert Theropod Sprint</div>
+    </div>
+    <div class="reel-item">
+      <video loop muted playsinline preload="none" data-lazy="Low-Angle T-Rex (istockphoto-1743079504).mp4"></video>
+      <div class="reel-item-label">Low-Angle T-Rex</div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────
+     3D EXHIBIT CARDS
+────────────────────────────────────────── -->
+<section class="exhibits" id="exhibits">
+  <div class="section-header reveal">
+    <div>
+      <span class="section-tag">[ 01 ] — Our Galleries</span>
+      <h2 class="section-title">Curated<br><em>Exhibitions</em></h2>
+    </div>
+    <a href="#" class="section-link">View All →</a>
+  </div>
+
+  <div class="exhibits-grid">
+    <!-- Large card -->
+    <div class="exhibit-card tall" id="xcard1">
+      <div class="card-media" style="background-image:url('https://res.cloudinary.com/dsdxaxkiz/image/upload/v1779624247/01_udnber.png')"></div>
+      <div class="card-overlay-grad"></div>
+      <div class="card-shimmer"></div>
+      <div class="card-corner"></div>
+      <div class="card-info">
+        <span class="card-era">Late Cretaceous · 68–66 Ma</span>
+        <h3 class="card-title">Age of<br>Dinosaurs</h3>
+        <p class="card-body">The most complete collection of Cretaceous apex predators on display anywhere in the world. From the towering T-Rex to the agile Velociraptor.</p>
+      </div>
+    </div>
+
+    <div class="exhibit-card" id="xcard2">
+      <div class="card-media" style="background-image:url('https://res.cloudinary.com/dsdxaxkiz/image/upload/v1779624374/02_pmvxxl.png')"></div>
+      <div class="card-overlay-grad"></div>
+      <div class="card-shimmer"></div>
+      <div class="card-corner"></div>
+      <div class="card-info">
+        <span class="card-era">Triassic · 230 Ma</span>
+        <h3 class="card-title">Fossils of Ancient Life</h3>
+        <p class="card-body">Unearth the earliest signs of prehistoric existence preserved in stone.</p>
+      </div>
+    </div>
+
+    <div class="exhibit-card" id="xcard3">
+      <div class="card-media" style="background-image:url('https://res.cloudinary.com/dsdxaxkiz/image/upload/v1779624236/03_hcp3jc.png')"></div>
+      <div class="card-overlay-grad"></div>
+      <div class="card-shimmer"></div>
+      <div class="card-corner"></div>
+      <div class="card-info">
+        <span class="card-era">Mesozoic · 250–65 Ma</span>
+        <h3 class="card-title">Reptiles of the Mesozoic</h3>
+        <p class="card-body">Explore the vast diversity of reptilian life that ruled land, sea and sky.</p>
+      </div>
+    </div>
+
+    <div class="exhibit-card" id="xcard4">
+      <div class="card-media" style="background-image:url('https://res.cloudinary.com/dsdxaxkiz/image/upload/v1779624256/04_get63z.png')"></div>
+      <div class="card-overlay-grad"></div>
+      <div class="card-shimmer"></div>
+      <div class="card-corner"></div>
+      <div class="card-info">
+        <span class="card-era">Jurassic · 150 Ma</span>
+        <h3 class="card-title">Marine Fossil Gallery</h3>
+        <p class="card-body">Plesiosaurs, mosasaurs and ichthyosaurs of the ancient seas.</p>
+      </div>
+    </div>
+
+    <div class="exhibit-card" id="xcard5">
+      <div class="card-media" style="background-image:url('https://res.cloudinary.com/dsdxaxkiz/image/upload/v1779624251/05_kz1tyu.png')"></div>
+      <div class="card-overlay-grad"></div>
+      <div class="card-shimmer"></div>
+      <div class="card-corner"></div>
+      <div class="card-info">
+        <span class="card-era">Paleogene · 66–23 Ma</span>
+        <h3 class="card-title">Prehistoric Giants</h3>
+        <p class="card-body">The titans that emerged after the great extinction — discover what came next.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────────────────────────
+     SPECIMEN DETAIL (3D depth frame)
+────────────────────────────────────────── -->
+<section class="specimen" id="specimen">
+  <div class="specimen-ghost" aria-hidden="true">PTERANODON</div>
+
+  <div class="specimen-grid">
+    <div class="specimen-visual reveal-left">
+      <div class="specimen-frame-wrap" id="specimenFrame">
+        <div class="specimen-img-wrap">
+          <img src="https://res.cloudinary.com/dsdxaxkiz/image/upload/v1779625001/ChatGPT_Image_May_23_2026_12_24_44_PM_1_lv1dne.png"
+               alt="Pteranodon Longiceps fossil specimen"
+               crossorigin="anonymous" loading="lazy">
+          <div class="spec-line spec-line-h"></div>
+          <div class="spec-line spec-line-v"></div>
+          <span class="spec-label" style="top:calc(42%-16px); left:calc(28%+8px)">Wingspan axis · 7.5m</span>
+          <span class="spec-label" style="top:calc(42%+8px); left:calc(28%+8px)">Est. body mass · 20 kg</span>
+        </div>
+        <div class="specimen-shadow-a" style="transform-style:preserve-3d"></div>
+        <div class="specimen-shadow-b" style="transform-style:preserve-3d"></div>
+      </div>
+    </div>
+
+    <div class="specimen-info reveal">
+      <div class="specimen-number" aria-hidden="true">02</div>
+      <span class="section-tag">[ 02 ] — Featured Specimen</span>
+      <h2 class="specimen-title">Pteranodon<br><em>Longiceps</em></h2>
+      <div class="specimen-sub">Late Cretaceous · 86–84 Million Years Ago</div>
+      <p class="specimen-body">One of the largest flying reptiles ever discovered, the Pteranodon soared above shallow inland seas with a wingspan rivaling a modern small aircraft. This specimen, excavated from the Niobrara Chalk of Kansas, remains among the most complete pterosaur fossils in existence — a window into the age of winged giants.</p>
+      <div class="spec-data-row">
+        <div>
+          <div class="spec-datum-label">Wingspan</div>
+          <div class="spec-datum-val">7.5<span class="spec-datum-unit">m</span></div>
+        </div>
+        <div>
+          <div class="spec-datum-label">Body Mass</div>
+          <div class="spec-datum-val">20<span class="spec-datum-unit">kg</span></div>
+        </div>
+        <div>
+          <div class="spec-datum-label">Period</div>
+          <div class="spec-datum-val">86<span class="spec-datum-unit">Ma</span></div>
+        </div>
+      </div>
+      <a href="#" class="btn" id="specimenBtn">
+        <span>View Full Record</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────────────────────────
+     GEOLOGICAL TIMELINE
+────────────────────────────────────────── -->
+<section class="timeline" id="timeline">
+  <div class="section-header reveal">
+    <div>
+      <span class="section-tag">[ 03 ] — Geological Record</span>
+      <h2 class="section-title">Through<br><em>Deep Time</em></h2>
+    </div>
+  </div>
+
+  <div class="timeline-wrap">
+    <div class="timeline-spine"></div>
+
+    <div class="t-item reveal">
+      <div class="t-left">
+        <div class="t-period">Triassic Period</div>
+        <div class="t-name">First Dinosaurs Emerge</div>
+        <div class="t-years">252 — 201 million years ago</div>
+        <p class="t-desc">Small bipedal dinosaurs first appear in Gondwana. Eoraptor and Herrerasaurus pioneer a lineage that will dominate the planet for 165 million years.</p>
+      </div>
+      <div class="t-center"><div class="t-dot-outer"><div class="t-dot-inner"></div></div></div>
+      <div class="t-right"></div>
+    </div>
+
+    <div class="t-item reveal d1">
+      <div class="t-left"></div>
+      <div class="t-center"><div class="t-dot-outer"><div class="t-dot-inner"></div></div></div>
+      <div class="t-right">
+        <div class="t-period">Jurassic Period</div>
+        <div class="t-name">Giants Dominate the Earth</div>
+        <div class="t-years">201 — 145 million years ago</div>
+        <p class="t-desc">Sauropods like Brachiosaurus and Diplodocus reach staggering sizes. The Allosaurus terrorizes the landscape. First birds appear — feathered theropods taking flight.</p>
+      </div>
+    </div>
+
+    <div class="t-item reveal d2">
+      <div class="t-left">
+        <div class="t-period">Early Cretaceous</div>
+        <div class="t-name">Diversification Era</div>
+        <div class="t-years">145 — 100 million years ago</div>
+        <p class="t-desc">Flowering plants emerge transforming ecosystems. Spinosaurus prowls river deltas. The stage is set for the most iconic predators in Earth's history.</p>
+      </div>
+      <div class="t-center"><div class="t-dot-outer"><div class="t-dot-inner"></div></div></div>
+      <div class="t-right"></div>
+    </div>
+
+    <div class="t-item reveal d3">
+      <div class="t-left"></div>
+      <div class="t-center"><div class="t-dot-outer"><div class="t-dot-inner"></div></div></div>
+      <div class="t-right">
+        <div class="t-period">Late Cretaceous · Apex</div>
+        <div class="t-name">Age of the T-Rex</div>
+        <div class="t-years">100 — 66 million years ago</div>
+        <p class="t-desc">Tyrannosaurus Rex reigns supreme. Triceratops, Stegosaurus and Pteranodon share a world of tremendous scale. Herds of hadrosaurs stretch across continents.</p>
+      </div>
+    </div>
+
+    <div class="t-item reveal d4">
+      <div class="t-left">
+        <div class="t-period">K-Pg Extinction Event</div>
+        <div class="t-name">The Great Silence</div>
+        <div class="t-years">66 million years ago</div>
+        <p class="t-desc">A 10 km asteroid strikes Chicxulub, triggering a nuclear winter. 75% of all species perish. The age of the dinosaurs ends in fire, dust and darkness.</p>
+      </div>
+      <div class="t-center"><div class="t-dot-outer"><div class="t-dot-inner"></div></div></div>
+      <div class="t-right"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────────────────────────
+     FOOTER
+────────────────────────────────────────── -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-brand-name">PALEO<span>.</span></div>
+      <p class="footer-tagline">Natural History Museum — dedicated to exploring the story of life on Earth through science, discovery, and wonder. Spanning 230 million years.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Explore</div>
+      <ul class="footer-links">
+        <li><a href="#">Exhibitions</a></li>
+        <li><a href="#">Collections</a></li>
+        <li><a href="#">Research</a></li>
+        <li><a href="#">Digital Archive</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Visit</div>
+      <ul class="footer-links">
+        <li><a href="#">Hours &amp; Admission</a></li>
+        <li><a href="#">Getting Here</a></li>
+        <li><a href="#">Accessibility</a></li>
+        <li><a href="#">Group Bookings</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Learn</div>
+      <ul class="footer-links">
+        <li><a href="#">Education</a></li>
+        <li><a href="#">Events</a></li>
+        <li><a href="#">Publications</a></li>
+        <li><a href="#">Newsletter</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">Paleontology © 2026 — Natural History Museum</span>
+    <span class="footer-copy">Digging into our planet's past</span>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─── PRELOADER ─────────────────────── */
+const preloader = document.getElementById('preloader');
+const bar = document.getElementById('preloaderBar');
+let prog = 0;
+const fill = setInterval(() => {
+  prog = Math.min(prog + Math.random() * 6 + 2, 95);
+  bar.style.width = prog + '%';
+}, 80);
+
+window.addEventListener('load', () => {
+  clearInterval(fill);
+  bar.style.width = '100%';
+  setTimeout(() => preloader.classList.add('hidden'), 600);
+});
+
+/* ─── CUSTOM CURSOR ──────────────────── */
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top  = my + 'px';
+});
+
+// Ring follows with lerp
+(function lerpRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(lerpRing);
+})();
+
+const hoverEls = document.querySelectorAll('a, button, .exhibit-card, .habitat-card, .habitat-featured, .reel-item');
+hoverEls.forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.classList.add('hovering'); ring.classList.add('hovering'); });
+  el.addEventListener('mouseleave', () => { cursor.classList.remove('hovering'); ring.classList.remove('hovering'); });
+});
+
+/* ─── NAV SCROLL SHRINK ──────────────── */
+const nav = document.getElementById('mainNav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 60);
+}, { passive: true });
+
+/* ─── HERO TITLE REVEAL ─────────────── */
+window.addEventListener('load', () => {
+  document.querySelectorAll('.hero-headline .word').forEach(w => {
+    const d = parseFloat(w.dataset.d || 0);
+    setTimeout(() => w.classList.add('up'), d * 1000 + 400);
+  });
+});
+
+/* ─── PARTICLES ──────────────────────── */
+const particlesCont = document.getElementById('particles');
+for (let i = 0; i < 22; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const s = Math.random() * 3 + 1;
+  p.style.cssText = `
+    width:${s}px; height:${s}px;
+    left:${Math.random() * 100}%;
+    bottom:-${s}px;
+    animation-duration:${9 + Math.random() * 14}s;
+    animation-delay:${Math.random() * 10}s;
+    box-shadow: 0 0 ${s * 2}px rgba(196,137,30,0.6);
+  `;
+  particlesCont.appendChild(p);
+}
+
+/* ─── COUNTER ANIMATION ─────────────── */
+const countObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target;
+    const target = parseInt(el.dataset.count);
+    const dur = 2000;
+    const start = performance.now();
+    const tick = now => {
+      const t = Math.min((now - start) / dur, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(ease * target).toLocaleString();
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    countObserver.unobserve(el);
+  });
+}, { threshold: 0.4 });
+document.querySelectorAll('[data-count]').forEach(c => countObserver.observe(c));
+
+/* ─── SCROLL REVEAL ──────────────────── */
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      revealObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal, .reveal-left, .reveal-scale').forEach(el => revealObs.observe(el));
+
+/* ─── LAZY VIDEO LOADER ──────────────── */
+// Only load videos when they approach the viewport (saves bandwidth)
+const videoObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const v = e.target;
+    const src = v.dataset.lazy;
+    if (src && !v.src) {
+      v.src = src;
+      v.play().catch(() => {});
+    }
+    videoObs.unobserve(v);
+  });
+}, { rootMargin: '200px 0px' });
+
+document.querySelectorAll('video[data-lazy]').forEach(v => videoObs.observe(v));
+
+/* ─── 3D CARD TILT ───────────────────── */
+document.querySelectorAll('.exhibit-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const xPct = (e.clientX - r.left) / r.width;
+    const yPct = (e.clientY - r.top)  / r.height;
+    const rx = (yPct - 0.5) * -18;
+    const ry = (xPct - 0.5) *  18;
+    card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.02)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'perspective(900px) rotateX(0) rotateY(0) scale(1)';
+  });
+});
+
+/* ─── HABITAT CARD SHINE ─────────────── */
+document.querySelectorAll('.habitat-card').forEach(card => {
+  const shine = card.querySelector('.card-shine');
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width)  * 100;
+    const y = ((e.clientY - r.top)  / r.height) * 100;
+    shine.style.setProperty('--mx', x + '%');
+    shine.style.setProperty('--my', y + '%');
+  });
+});
+
+/* ─── SPECIMEN FRAME TILT ────────────── */
+const sfWrap = document.getElementById('specimenFrame');
+if (sfWrap) {
+  const parent = sfWrap.closest('.specimen-visual');
+  parent.addEventListener('mousemove', e => {
+    const r = sfWrap.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width  - 0.5) * 14;
+    const y = -((e.clientY - r.top) / r.height - 0.5) * 14;
+    sfWrap.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+  });
+  parent.addEventListener('mouseleave', () => {
+    sfWrap.style.transform = 'rotateY(-10deg) rotateX(5deg)';
+  });
+}
+
+/* ─── MODAL VIDEO PLAYER ─────────────── */
+const overlay  = document.getElementById('modalOverlay');
+const modalVid = document.getElementById('modalVideo');
+const mTitle   = document.getElementById('modalTitle');
+const mPeriod  = document.getElementById('modalPeriod');
+const mClose   = document.getElementById('modalClose');
+
+function openModal(src, title, period) {
+  modalVid.src = src;
+  modalVid.load();
+  mTitle.textContent  = title  || '';
+  mPeriod.textContent = period || '';
+  overlay.classList.add('open');
+  modalVid.play();
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  overlay.classList.remove('open');
+  modalVid.pause();
+  modalVid.src = '';
+  document.body.style.overflow = '';
+}
+
+mClose.addEventListener('click', closeModal);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// Featured habitat click
+document.getElementById('featuredHabitat').addEventListener('click', function (e) {
+  if (e.target.closest('.habitat-play-btn')) return; // handled below
+  openModal(this.dataset.src, this.dataset.title, this.dataset.period);
+});
+
+// Play buttons
+document.querySelectorAll('.habitat-play-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    openModal(btn.dataset.src, btn.dataset.title, btn.dataset.period);
+  });
+});
+
+// Small habitat cards
+document.querySelectorAll('.habitat-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const type = card.dataset.type;
+    if (type === 'gif') return; // GIFs auto-loop inline
+    openModal(card.dataset.src, card.dataset.title, card.dataset.period);
+  });
+});
+
+// Reel strip items
+document.querySelectorAll('.reel-item[data-src]').forEach(item => {
+  item.addEventListener('click', () => {
+    openModal(item.dataset.src, item.dataset.title, item.dataset.period);
+  });
+});
+
+/* ─── PARALLAX HERO VIDEO ────────────── */
+window.addEventListener('scroll', () => {
+  const heroVid = document.getElementById('heroVideo');
+  if (heroVid) {
+    const scrollY = window.scrollY;
+    heroVid.style.transform = `translateY(${scrollY * 0.35}px) scale(1.05)`;
+  }
+}, { passive: true });
+
+/* ─── GSAP-POWERED EXTRAS (if loaded) ── */
+window.addEventListener('load', () => {
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Parallax on exhibit cards
+  gsap.utils.toArray('.exhibit-card').forEach((card, i) => {
+    gsap.fromTo(card,
+      { y: 40, opacity: 0 },
+      {
+        y: 0, opacity: 1, duration: 0.9,
+        delay: i * 0.07,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 88%',
+          toggleActions: 'play none none none',
+        }
+      }
+    );
+  });
+
+  // Timeline items stagger
+  gsap.utils.toArray('.t-item').forEach((item, i) => {
+    gsap.fromTo(item,
+      { opacity: 0, y: 30 },
+      {
+        opacity: 1, y: 0,
+        duration: 0.8,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: item,
+          start: 'top 85%',
+        }
+      }
+    );
+  });
+
+  // Section titles cinematic scale
+  gsap.utils.toArray('.section-title').forEach(title => {
+    gsap.fromTo(title,
+      { opacity: 0, y: 20, filter: 'blur(6px)' },
+      {
+        opacity: 1, y: 0, filter: 'blur(0px)',
+        duration: 1.1, ease: 'power3.out',
+        scrollTrigger: { trigger: title, start: 'top 88%' }
+      }
+    );
+  });
+});
+
+/* ─── HERO VIDEO OPACITY FADE-IN ─────── */
+document.addEventListener('DOMContentLoaded', () => {
+  const hv = document.getElementById('heroVideo');
+  if (hv) {
+    hv.style.opacity = '0';
+    hv.style.transition = 'opacity 2s ease';
+    hv.addEventListener('loadeddata', () => { hv.style.opacity = '1'; });
+    // Fallback for cached videos
+    if (hv.readyState >= 3) hv.style.opacity = '1';
+  }
+});
+
+/* Load video URLs dynamically */
+document.addEventListener('DOMContentLoaded', () => {
+  // Load video URLs from VIDEO_URLS object
+  const videoElements = document.querySelectorAll('video[data-video-key], video[data-lazy]');
+  videoElements.forEach(video => {
+    const key = video.getAttribute('data-video-key') || video.getAttribute('data-lazy');
+    if (key && VIDEO_URLS[key]) {
+      video.src = VIDEO_URLS[key];
+      video.load();
+    }
+  });
+
+  // Update modal video handler to use VIDEO_URLS
+  const cards = document.querySelectorAll('[data-video-key]');
+  cards.forEach(card => {
+    card.addEventListener('click', function() {
+      const key = this.getAttribute('data-video-key');
+      if (key && VIDEO_URLS[key]) {
+        openModal(VIDEO_URLS[key], this.dataset.title, this.dataset.period);
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
