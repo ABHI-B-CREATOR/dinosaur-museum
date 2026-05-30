@@ -1869,26 +1869,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* Load video URLs dynamically */
 document.addEventListener('DOMContentLoaded', () => {
+  // Mapping of old filenames to VIDEO_URLS keys
+  const videoMapping = {
+    'Low-Angle T-Rex (istockphoto-1743079504).mp4': 'heroLowAngleTrex',
+    'Desert Theropod Sprint (istockphoto-2275248144).mp4': 'desertTheropod',
+    'Forest Allosaurus (3844767025-preview).mp4': 'forestAllosaurus',
+    'Stegosaurus in the Mist (istockphoto-2234422776).mp4': 'stegosaurusMist',
+    'Coastal Pterosaurs (istockphoto-1794670031).mp4': 'coastalPterosaurs',
+    'Modern City T-Rex (Video Game City GIF by CAPCOM).gif': 'modernCityTrex',
+  };
+
   // Load video URLs from VIDEO_URLS object
-  const videoElements = document.querySelectorAll('video[data-video-key], video[data-lazy]');
+  const videoElements = document.querySelectorAll('video');
   videoElements.forEach(video => {
-    const key = video.getAttribute('data-video-key') || video.getAttribute('data-lazy');
+    // Try to get key from data-video-key first
+    let key = video.getAttribute('data-video-key');
+    
+    // If not found, try to get from data-lazy and map it
+    if (!key) {
+      const lazyValue = video.getAttribute('data-lazy');
+      key = videoMapping[lazyValue];
+    }
+    
+    // If we have a key and it exists in VIDEO_URLS, set the URL
     if (key && VIDEO_URLS[key]) {
       video.src = VIDEO_URLS[key];
-      video.load();
+      if (!video.src.includes('gif')) {
+        video.load();
+      }
     }
   });
 
-  // Update modal video handler to use VIDEO_URLS
-  const cards = document.querySelectorAll('[data-video-key]');
+  // Update card click handlers
+  const cards = document.querySelectorAll('.habitat-card[data-src], .reel-item[data-src], #featuredHabitat');
   cards.forEach(card => {
     card.addEventListener('click', function() {
-      const key = this.getAttribute('data-video-key');
-      if (key && VIDEO_URLS[key]) {
-        openModal(VIDEO_URLS[key], this.dataset.title, this.dataset.period);
+      // Try to find the video URL
+      let src = this.getAttribute('data-src');
+      
+      // If data-src is empty or old filename, try to map it
+      if (!src || src.includes('istockphoto') || src.includes('CAPCOM')) {
+        const oldFilename = Object.keys(videoMapping).find(filename => 
+          this.getAttribute('data-src') === filename ||
+          this.innerHTML.includes(filename)
+        );
+        const key = videoMapping[oldFilename];
+        src = VIDEO_URLS[key] || src;
       }
+      
+      const title = this.dataset.title || this.querySelector('.habitat-name')?.textContent || '';
+      const period = this.dataset.period || this.querySelector('.habitat-kicker')?.textContent || '';
+      
+      openModal(src, title, period);
     });
   });
+
+  // Load featured habitat video
+  const featured = document.getElementById('featuredHabitat');
+  if (featured) {
+    const featuredVideo = featured.querySelector('video');
+    if (featuredVideo) {
+      featuredVideo.src = VIDEO_URLS.coastalPterosaurs;
+      featuredVideo.load();
+    }
+  }
 });
 </script>
 </body>
