@@ -1,23 +1,17 @@
 import ClassicPromptSection from "./ClassicPromptSection";
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import ErrorBoundary from "./ErrorBoundary";
+import { VIDEO_URLS } from "./config/videoUrls";
 
 const DinoExperience = React.lazy(() => import("./DinoExperience.tsx"));
 
-import modernCityTrex from "../Modern City T-Rex (Video Game City GIF by CAPCOM).gif";
-import desertTheropod from "../Desert Theropod Sprint (istockphoto-2275248144).mp4";
-import forestAllosaurus from "../Forest Allosaurus (3844767025-preview).mp4";
-import stegosaurusMist from "../Stegosaurus in the Mist (istockphoto-2234422776).mp4";
-import coastalPterosaurs from "../Coastal Pterosaurs (istockphoto-1794670031).mp4";
-import lowAngleTrex from "../Low-Angle T-Rex (istockphoto-1743079504).mp4";
-
 const heroMedia = [
-  { src: modernCityTrex, kind: "image" },
-  { src: desertTheropod, kind: "video" },
-  { src: forestAllosaurus, kind: "video" },
-  { src: stegosaurusMist, kind: "video" },
-  { src: coastalPterosaurs, kind: "video" },
-  { src: lowAngleTrex, kind: "video" },
+  { src: VIDEO_URLS.modernCityTrex, kind: "image" },
+  { src: VIDEO_URLS.desertTheropod, kind: "video" },
+  { src: VIDEO_URLS.forestAllosaurus, kind: "video" },
+  { src: VIDEO_URLS.stegosaurusMist, kind: "video" },
+  { src: VIDEO_URLS.coastalPterosaurs, kind: "video" },
+  { src: VIDEO_URLS.heroLowAngleTrex, kind: "video" },
 ];
 
 function HeroVideo() {

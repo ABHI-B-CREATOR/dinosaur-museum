@@ -26,12 +26,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import modernCityTrex from "../Modern City T-Rex (Video Game City GIF by CAPCOM).gif";
-import desertTheropod from "../Desert Theropod Sprint (istockphoto-2275248144).mp4";
-import forestAllosaurus from "../Forest Allosaurus (3844767025-preview).mp4";
-import stegosaurusMist from "../Stegosaurus in the Mist (istockphoto-2234422776).mp4";
-import coastalPterosaurs from "../Coastal Pterosaurs (istockphoto-1794670031).mp4";
-import lowAngleTrex from "../Low-Angle T-Rex (istockphoto-1743079504).mp4";
+import { VIDEO_URLS } from "./config/videoUrls";
 
 type MediaKind = "video" | "image";
 
@@ -60,7 +55,7 @@ const scenes: Scene[] = [
     era: "Breakout",
     habitat: "Neo-urban chaos",
     mood: "High-energy impact",
-    media: modernCityTrex,
+    media: VIDEO_URLS.modernCityTrex,
     kind: "image",
     palette: "#d17a3c",
     fact: "Use this as the first punch: the impossible appears in a familiar world.",
@@ -71,7 +66,7 @@ const scenes: Scene[] = [
     era: "Chase",
     habitat: "Arid basin",
     mood: "Intense motion",
-    media: desertTheropod,
+    media: VIDEO_URLS.desertTheropod,
     kind: "video",
     palette: "#e0b15c",
     fact: "Best for a wide shot with drifting sand and hard motion energy.",
@@ -82,7 +77,7 @@ const scenes: Scene[] = [
     era: "Discovery",
     habitat: "Pine and fern woodland",
     mood: "Natural and observed",
-    media: forestAllosaurus,
+    media: VIDEO_URLS.forestAllosaurus,
     kind: "video",
     palette: "#5f7f46",
     fact: "Slow the tempo here so it feels like a field recording in the wild.",
@@ -93,7 +88,7 @@ const scenes: Scene[] = [
     era: "Suspense",
     habitat: "Misty swampland",
     mood: "Mysterious and heavy",
-    media: stegosaurusMist,
+    media: VIDEO_URLS.stegosaurusMist,
     kind: "video",
     palette: "#7a8a79",
     fact: "Dense fog and soft lighting make this chapter feel ancient and sacred.",
@@ -104,7 +99,7 @@ const scenes: Scene[] = [
     era: "Expanse",
     habitat: "Sea cliffs and open coast",
     mood: "Majestic and uplifting",
-    media: coastalPterosaurs,
+    media: VIDEO_URLS.coastalPterosaurs,
     kind: "video",
     palette: "#5f93b5",
     fact: "Open the frame wide so the world suddenly feels enormous.",
@@ -115,7 +110,7 @@ const scenes: Scene[] = [
     era: "Climax",
     habitat: "Fern floor under a cloudy sky",
     mood: "Suspense and power",
-    media: lowAngleTrex,
+    media: VIDEO_URLS.heroLowAngleTrex,
     kind: "video",
     palette: "#8b5a3b",
     fact: "End here so the experience lands like a final museum-grade roar.",
